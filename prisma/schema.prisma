@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Booking {
+  id          String   @id @default(cuid())
+  site        String   @db.VarChar(50)
+  startTime   DateTime
+  endTime     DateTime
+  duration    Int
+  lastName    String
+  firstName   String?
+  email       String?
+  company     String
+  phone       String
+  meetingType  String   @db.VarChar(50)
+  userTimezone String   @default("Asia/Shanghai") @db.VarChar(50)
+  status       String   @default("confirmed") @db.VarChar(20)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([site, startTime])
+  @@index([site, status])
+}
+
+model AvailabilityConfig {
+  id        String  @id @default(cuid())
+  site      String  @db.VarChar(50)
+  dayOfWeek Int     // 0=周日, 1=周一, ..., 6=周六
+  startTime String  @db.VarChar(5)  // "09:00"
+  endTime   String  @db.VarChar(5)  // "18:00"
+  isActive  Boolean @default(true)
+
+  @@unique([site, dayOfWeek])
+}
+
+model BreakTime {
+  id        String  @id @default(cuid())
+  site      String  @db.VarChar(50)
+  dayOfWeek Int?    // null = 每天生效
+  startTime String  @db.VarChar(5)  // "12:00"
+  endTime   String  @db.VarChar(5)  // "14:00"
+  isActive  Boolean @default(true)
+}
+
+model Holiday {
+  id        String   @id @default(cuid())
+  site      String   @db.VarChar(50)
+  date      String   @db.VarChar(10) // "yyyy-MM-dd"
+  reason    String?  @db.VarChar(100)
+  createdAt DateTime @default(now())
+
+  @@unique([site, date])
+  @@index([site, date])
+}

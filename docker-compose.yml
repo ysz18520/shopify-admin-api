@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: shanzhao-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: k1Vnw8a71kXRx9p0tMf0
+      MYSQL_DATABASE: shopify_backend
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - shanzhao
+
+  backend:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: shanzhao-backend
+    restart: always
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: mysql://root:k1Vnw8a71kXRx9p0tMf0@mysql:3306/shopify_backend
+      JWT_SECRET: ifQxpZt5EVZ4rcsyxYPekKxfPxA6feBYqw54Xi/jewvQ64gqSHXl9Md5so4VGwDf
+      ADMIN_USERNAME: admin
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+    networks:
+      - shanzhao
+
+  nginx:
+    image: nginx:alpine
+    container_name: shanzhao-nginx
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./admin-dist:/usr/share/nginx/html/admin:ro
+    depends_on:
+      - backend
+    networks:
+      - shanzhao
+
+volumes:
+  mysql_data:
+
+networks:
+  shanzhao:
+    driver: bridge
