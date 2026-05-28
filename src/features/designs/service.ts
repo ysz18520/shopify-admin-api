@@ -44,51 +44,41 @@ export async function getDesignById(id: number, siteFilter?: string) {
   return formatDesign(design);
 }
 
-export async function createDesign(data: {
-  site: string;
-  designId?: string;
-  designTitle: string;
-  designDescription?: string;
-  designAuthor?: string;
-  designImg?: string;
-  series?: string;
-  project?: string;
-  votingCount?: number;
-  addedBy?: string;
-}) {
+export async function createDesign(data: any) {
   const design = await prisma.design.create({
     data: {
       site: data.site,
-      designId: data.designId || generateDesignId(),
-      designTitle: data.designTitle,
-      designDescription: data.designDescription || '',
-      designAuthor: data.designAuthor || '',
-      designImg: data.designImg || '',
+      designId: data.designId || data.design_id || generateDesignId(),
+      designTitle: data.designTitle || data.design_title || '',
+      designDescription: data.designDescription || data.design_description || '',
+      designAuthor: data.designAuthor || data.design_author || '',
+      designImg: data.designImg || data.design_img || '',
       series: data.series || '',
       project: data.project || '',
-      votingCount: data.votingCount || 0,
-      addedBy: data.addedBy || '',
+      votingCount: data.votingCount || data.voting_count || 0,
+      addedBy: data.addedBy || data.added_by || '',
     },
   });
   return formatDesign(design);
 }
 
-export async function updateDesign(id: number, data: {
-  designTitle?: string;
-  designDescription?: string;
-  designAuthor?: string;
-  designImg?: string;
-  series?: string;
-  project?: string;
-  votingCount?: number;
-}, siteFilter?: string) {
+export async function updateDesign(id: number, data: any, siteFilter?: string) {
   const existing = await prisma.design.findUnique({ where: { id } });
   if (!existing) throw new Error('设计作品不存在');
   if (siteFilter && existing.site !== siteFilter) throw new Error('Permission denied');
 
+  const updateData: any = {};
+  if (data.designTitle || data.design_title) updateData.designTitle = data.designTitle || data.design_title;
+  if (data.designDescription || data.design_description) updateData.designDescription = data.designDescription || data.design_description;
+  if (data.designAuthor || data.design_author) updateData.designAuthor = data.designAuthor || data.design_author;
+  if (data.designImg || data.design_img) updateData.designImg = data.designImg || data.design_img;
+  if (data.series) updateData.series = data.series;
+  if (data.project) updateData.project = data.project;
+  if (data.votingCount || data.voting_count) updateData.votingCount = data.votingCount || data.voting_count;
+
   const design = await prisma.design.update({
     where: { id },
-    data,
+    data: updateData,
   });
   return formatDesign(design);
 }
