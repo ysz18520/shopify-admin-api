@@ -2,9 +2,10 @@ import type { Request, Response } from 'express';
 import prisma from '../../lib/prisma';
 import * as bookingService from './service';
 
-export async function getConfig(_req: Request, res: Response) {
+export async function getConfig(req: Request, res: Response) {
   try {
-    const config = bookingService.getBookingConfig();
+    const site = (req.query.site as string) || 'coollaa';
+    const config = await bookingService.getBookingConfig(site);
     res.json(config);
   } catch (error) {
     console.error('Get booking config error:', error);
@@ -14,7 +15,7 @@ export async function getConfig(_req: Request, res: Response) {
 
 export async function getSlots(req: Request, res: Response) {
   try {
-    const { date, duration, timezone } = req.query;
+    const { date, duration, timezone, site } = req.query;
 
     if (!date || !duration || !timezone) {
       res.status(400).json({ error: 'date, duration, timezone are required' });
@@ -30,7 +31,8 @@ export async function getSlots(req: Request, res: Response) {
     const result = await bookingService.getAvailableSlots(
       date as string,
       dur,
-      timezone as string
+      timezone as string,
+      (site as string) || 'coollaa'
     );
     res.json(result);
   } catch (error) {
@@ -70,6 +72,7 @@ export async function createBooking(req: Request, res: Response) {
       company,
       phone,
       meetingType,
+      site,
     } = req.body;
 
     if (!date || !startTime || !duration || !userTimezone || !lastName || !company || !phone || !meetingType) {
@@ -93,6 +96,7 @@ export async function createBooking(req: Request, res: Response) {
       company,
       phone,
       meetingType,
+      site: site || 'coollaa',
     });
 
     res.status(201).json(booking);

@@ -3,7 +3,8 @@
   Usage: Add this section to any page in the Shopify theme editor
 {% endcomment %}
 
-{% assign api_base = section.settings.api_base | default: 'https://api.coollaa.com/api' %}
+{% assign api_base = section.settings.api_base | default: 'https://admin.coollaa.com/api' %}
+{% assign site = section.settings.site | default: 'coollaa' %}
 {% assign primary_color = section.settings.primary_color | default: '#1976d2' %}
 {% assign primary_color_dark = primary_color | color_darken: 10 %}
 {% assign primary_color_light = primary_color | color_mix: '#ffffff', 90 %}
@@ -868,6 +869,7 @@
 (function() {
   const sectionId = '{{ section.id }}';
   const API_BASE = '{{ api_base }}';
+  const SITE = '{{ site }}';
   const MEETING_TYPE = '{{ section.settings.meeting_type | escape }}';
 
   // ==================== State ====================
@@ -1096,7 +1098,7 @@
 
     try {
       const res = await fetch(
-        API_BASE + '/coollaa/booking/slots?date=' + selectedDate + '&duration=' + selectedDuration + '&timezone=' + encodeURIComponent(timezone)
+        API_BASE + '/coollaa/booking/slots?site=' + encodeURIComponent(SITE) + '&date=' + selectedDate + '&duration=' + selectedDuration + '&timezone=' + encodeURIComponent(timezone)
       );
       const data = await res.json();
 
@@ -1212,6 +1214,7 @@
     });
 
     const payload = {
+      site: SITE,
       date: selectedDate,
       startTime: merchantTimeStr,
       duration: selectedDuration,
@@ -1299,7 +1302,7 @@
   selectDate(formatDate(new Date()));
 
   // Fetch merchant config (timezone, etc.)
-  fetch(API_BASE + '/coollaa/booking/config')
+  fetch(API_BASE + '/coollaa/booking/config?site=' + encodeURIComponent(SITE))
     .then(function(r) { return r.json(); })
     .then(function(config) {
       businessTimezone = config.timeZone || 'Asia/Shanghai';
@@ -1364,7 +1367,14 @@
       "id": "api_base",
       "label": "API Base URL",
       "info": "Backend API URL, no trailing slash",
-      "default": "https://api.coollaa.com/api"
+      "default": "https://admin.coollaa.com/api"
+    },
+    {
+      "type": "text",
+      "id": "site",
+      "label": "Site ID",
+      "info": "Site identifier (e.g., coollaa, longshade)",
+      "default": "coollaa"
     },
     {
       "type": "color",
@@ -1385,7 +1395,8 @@
       "settings": {
         "brand_name": "COOLLAA",
         "panel_title": "COOLLAA Custom Windows and Doors | Architect-Approved Solutions",
-        "api_base": "https://api.coollaa.com/api",
+        "api_base": "https://admin.coollaa.com/api",
+        "site": "coollaa",
         "primary_color": "#1976d2",
         "meeting_type": "WhatsApp Call"
       }

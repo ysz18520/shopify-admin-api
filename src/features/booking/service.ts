@@ -7,14 +7,16 @@ import {
 } from 'date-fns';
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz';
 import prisma from '../../lib/prisma';
-import { COOLLAA_BOOKING } from '../../config/booking';
-
-const SITE = COOLLAA_BOOKING.site;
-const TZ = COOLLAA_BOOKING.businessTimezone;
+import { getSiteConfig, type SiteBookingConfig } from '../../config/booking';
 
 interface TimeRange {
   start: Date;
   end: Date;
+}
+
+// 获取店铺配置（从硬编码配置）
+function getStoreConfig(site: string): SiteBookingConfig {
+  return getSiteConfig(site);
 }
 
 function parseTimeToDate(baseDate: Date, timeStr: string): Date {
@@ -59,8 +61,13 @@ function generateSlots(
 export async function getAvailableSlots(
   dateStr: string,
   duration: number,
-  userTimezone: string
+  userTimezone: string,
+  site: string = 'coollaa'
 ) {
+  // 获取店铺配置
+  const config = getStoreConfig(site);
+  const TZ = config.businessTimezone;
+
   // 1. 解析商家日期为 UTC 当天的开始
   const merchantDate = parse(dateStr, 'yyyy-MM-dd', new Date());
   const dayStart = fromZonedTime(
@@ -77,7 +84,7 @@ export async function getAvailableSlots(
   }
 
   // 法定节假日不可约
-  if ((COOLLAA_BOOKING.holidays2026 as readonly string[]).includes(dateStr)) {
+  if ((config.holidays2026 as readonly string[]).includes(dateStr)) {
     return { date: dateStr, duration, slots: [] };
   }
 
@@ -89,12 +96,12 @@ export async function getAvailableSlots(
 
   // 2. 查询可用性配置
   let availability = await prisma.availabilityConfig.findUnique({
-    where: { site_dayOfWeek: { site: SITE, dayOfWeek } },
+    where: { site_dayOfWeek: { site, dayOfWeek } },
   });
 
   // 如果没有配置，使用默认
   if (!availability) {
-    const defaultConfig = COOLLAA_BOOKING.defaultAvailability.find(
+    const defaultConfig = config.defaultAvailability.find(
       (a) => a.dayOfWeek === dayOfWeek
     );
     if (!defaultConfig) {
@@ -102,7 +109,7 @@ export async function getAvailableSlots(
     }
     availability = {
       id: '',
-      site: SITE,
+      site,
       dayOfWeek,
       startTime: defaultConfig.startTime,
       endTime: defaultConfig.endTime,
@@ -127,14 +134,14 @@ export async function getAvailableSlots(
   // 4. 查询午休配置
   const breakConfigs = await prisma.breakTime.findMany({
     where: {
-      site: SITE,
+      site,
       isActive: true,
       OR: [{ dayOfWeek: null }, { dayOfWeek }],
     },
   });
 
   const breaks: TimeRange[] = [];
-  for (const b of breakConfigs.length > 0 ? breakConfigs : COOLLAA_BOOKING.defaultBreaks.map(b => ({...b, id: '', site: SITE, dayOfWeek: null as number | null, isActive: true}))) {
+  for (const b of breakConfigs.length > 0 ? breakConfigs : config.defaultBreaks.map(b => ({...b, id: '', site, dayOfWeek: null as number | null, isActive: true}))) {
     breaks.push({
       start: fromZonedTime(`${dateStr}T${b.startTime}:00`, TZ),
       end: fromZonedTime(`${dateStr}T${b.endTime}:00`, TZ),
@@ -144,7 +151,7 @@ export async function getAvailableSlots(
   // 5. 查询已有预约
   const existingBookings = await prisma.booking.findMany({
     where: {
-      site: SITE,
+      site,
       status: 'confirmed',
       startTime: { gte: dayStart, lt: dayEnd },
     },
@@ -162,7 +169,7 @@ export async function getAvailableSlots(
     breaks,
     bookingRanges,
     duration,
-    COOLLAA_BOOKING.intervalMinutes
+    config.intervalMinutes
   );
 
   // 如果是今天，过滤掉已经过期的时段
@@ -192,7 +199,12 @@ export async function createBooking(data: {
   company: string;
   phone: string;
   meetingType: string;
+  site?: string;
 }) {
+  const site = data.site || 'coollaa';
+  const config = getStoreConfig(site);
+  const TZ = config.businessTimezone;
+
   // 将商家时区的时间转换为 UTC
   const startTimeUTC = fromZonedTime(
     `${data.date}T${data.startTime}:00`,
@@ -208,7 +220,7 @@ export async function createBooking(data: {
   // 检查是否与已有预约冲突
   const conflicting = await prisma.booking.findFirst({
     where: {
-      site: SITE,
+      site,
       status: 'confirmed',
       OR: [
         {
@@ -233,7 +245,7 @@ export async function createBooking(data: {
 
   const booking = await prisma.booking.create({
     data: {
-      site: SITE,
+      site,
       startTime: startTimeUTC,
       endTime: endTimeUTC,
       duration: data.duration,
@@ -250,12 +262,14 @@ export async function createBooking(data: {
   return booking;
 }
 
-export function getBookingConfig() {
+export async function getBookingConfig(site: string = 'coollaa') {
+  const config = getStoreConfig(site);
   return {
-    timeZone: COOLLAA_BOOKING.businessTimezone,
-    timeZoneName: COOLLAA_BOOKING.businessTimezoneName,
-    durationOptions: COOLLAA_BOOKING.durationOptions,
-    intervalMinutes: COOLLAA_BOOKING.intervalMinutes,
-    meetingOptions: COOLLAA_BOOKING.meetingOptions,
+    site: config.site,
+    timeZone: config.businessTimezone,
+    timeZoneName: config.businessTimezoneName,
+    durationOptions: config.durationOptions,
+    intervalMinutes: config.intervalMinutes,
+    meetingOptions: config.meetingOptions,
   };
 }

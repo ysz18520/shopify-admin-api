@@ -1,11 +1,24 @@
-export const COOLLAA_BOOKING = {
+// 店铺配置类型
+export type SiteBookingConfig = {
+  site: string;
+  businessTimezone: string;
+  businessTimezoneName: string;
+  durationOptions: readonly number[];
+  intervalMinutes: number;
+  meetingOptions: readonly string[];
+  defaultAvailability: readonly { dayOfWeek: number; startTime: string; endTime: string }[];
+  defaultBreaks: readonly { startTime: string; endTime: string }[];
+  holidays2026: readonly string[];
+};
+
+// coollaa 配置
+export const COOLLAA_BOOKING: SiteBookingConfig = {
   site: 'coollaa',
   businessTimezone: 'Asia/Shanghai',
   businessTimezoneName: 'UTC +08:00 China, Hong Kong, Singapore',
   durationOptions: [30, 60],
   intervalMinutes: 15,
   meetingOptions: ['WhatsApp Call', 'In-Person Appointment'],
-  // Default weekday config: Mon-Fri, 9:00-18:00
   defaultAvailability: [
     { dayOfWeek: 1, startTime: '09:00', endTime: '18:00' },
     { dayOfWeek: 2, startTime: '09:00', endTime: '18:00' },
@@ -13,11 +26,9 @@ export const COOLLAA_BOOKING = {
     { dayOfWeek: 4, startTime: '09:00', endTime: '18:00' },
     { dayOfWeek: 5, startTime: '09:00', endTime: '18:00' },
   ],
-  // Default lunch break: daily 12:00-14:00
   defaultBreaks: [
     { startTime: '12:00', endTime: '14:00' },
   ],
-  // 2026 China public holidays (no bookings)
   holidays2026: [
     '2026-01-01',
     '2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20',
@@ -29,12 +40,43 @@ export const COOLLAA_BOOKING = {
     '2026-10-01', '2026-10-02', '2026-10-03', '2026-10-04',
     '2026-10-05', '2026-10-06', '2026-10-07', '2026-10-08',
   ],
-} as const;
+};
+
+// longshade 配置（示例，需要根据实际情况修改）
+export const LONGSHADE_BOOKING: SiteBookingConfig = {
+  site: 'longshade',
+  businessTimezone: 'Asia/Shanghai',
+  businessTimezoneName: 'UTC +08:00 China, Hong Kong, Singapore',
+  durationOptions: [30, 60],
+  intervalMinutes: 15,
+  meetingOptions: ['WhatsApp Call', 'In-Person Appointment'],
+  defaultAvailability: [
+    { dayOfWeek: 1, startTime: '09:00', endTime: '18:00' },
+    { dayOfWeek: 2, startTime: '09:00', endTime: '18:00' },
+    { dayOfWeek: 3, startTime: '09:00', endTime: '18:00' },
+    { dayOfWeek: 4, startTime: '09:00', endTime: '18:00' },
+    { dayOfWeek: 5, startTime: '09:00', endTime: '18:00' },
+  ],
+  defaultBreaks: [
+    { startTime: '12:00', endTime: '14:00' },
+  ],
+  holidays2026: [
+    '2026-01-01',
+    '2026-02-17', '2026-02-18', '2026-02-19', '2026-02-20',
+    '2026-02-21', '2026-02-22', '2026-02-23',
+    '2026-04-04', '2026-04-05', '2026-04-06',
+    '2026-05-01', '2026-05-02', '2026-05-03', '2026-05-04', '2026-05-05',
+    '2026-06-19', '2026-06-20', '2026-06-21',
+    '2026-09-25', '2026-09-26', '2026-09-27',
+    '2026-10-01', '2026-10-02', '2026-10-03', '2026-10-04',
+    '2026-10-05', '2026-10-06', '2026-10-07', '2026-10-08',
+  ],
+};
 
 // 多店铺配置映射
-const SITE_CONFIGS: Record<string, typeof COOLLAA_BOOKING> = {
+const SITE_CONFIGS: Record<string, SiteBookingConfig> = {
   coollaa: COOLLAA_BOOKING,
-  // longshade: { ... }, // 新店铺在此添加
+  longshade: LONGSHADE_BOOKING,
 };
 
 export function getSiteConfig(site: string): typeof COOLLAA_BOOKING {

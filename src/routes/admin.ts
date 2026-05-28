@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authMiddleware, siteFilterMiddleware } from '../middleware/auth';
 import * as adminController from '../features/admin/controller';
+import * as storeController from '../features/store/controller';
 
 const router = Router();
 
@@ -11,6 +12,14 @@ router.post('/login', adminController.login);
 router.use(authMiddleware);
 router.use(siteFilterMiddleware);
 
+// 店铺管理（超管可操作所有店铺）
+router.get('/stores', storeController.getAllStores);
+router.get('/stores/:name', storeController.getStoreByName);
+router.post('/stores', storeController.createStore);
+router.put('/stores/:name', storeController.updateStore);
+router.delete('/stores/:name', storeController.deleteStore);
+
+// 预约管理
 router.get('/bookings', adminController.getBookings);
 router.put('/bookings/:id/cancel', adminController.cancelBooking);
 router.get('/stats', adminController.getStats);
