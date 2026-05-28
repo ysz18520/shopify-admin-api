@@ -60,8 +60,77 @@ model Holiday {
 }
 
 model Store {
+  id               String   @id @default(cuid())
+  name             String   @unique @db.VarChar(50)  // 店铺名称/标识
+  isBookingEnabled Boolean  @default(false) @map("is_booking_enabled")  // 预约功能开关
+  isVotingEnabled  Boolean  @default(false) @map("is_voting_enabled")   // 投票功能开关
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  users User[]
+
+  @@map("stores")
+}
+
+model User {
   id        String   @id @default(cuid())
-  name      String   @unique @db.VarChar(50)  // 店铺名称/标识：coollaa, longshade
+  username  String   @unique @db.VarChar(50)  // 用户名（店铺名或 admin）
+  password  String   @db.VarChar(255)         // 密码哈希
+  role      String   @default("site") @db.VarChar(20)  // super 或 site
+  site      String?  @db.VarChar(50)          // 店铺名称（site 角色才有）
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  store Store? @relation(fields: [site], references: [name], onDelete: Cascade)
+}
+
+model Design {
+  id                Int           @id @default(autoincrement())
+  site              String        @db.VarChar(50)
+  designId          String        @map("design_id") @db.VarChar(100)
+  designTitle       String        @map("design_title") @db.VarChar(255)
+  designDescription String        @default("") @map("design_description") @db.LongText
+  designAuthor      String        @default("") @map("design_author") @db.VarChar(255)
+  designImg         String        @default("") @map("design_img") @db.VarChar(500)
+  votingCount       Int           @default(0) @map("voting_count")
+  series            String        @default("") @db.VarChar(255)
+  project           String        @default("") @db.VarChar(255)
+  addedBy           String        @default("") @map("added_by") @db.VarChar(150)
+  createdAt         DateTime      @default(now()) @map("created_at")
+
+  votes DesignVote[]
+
+  @@unique([site, designId])
+  @@index([site])
+  @@map("designs")
+}
+
+model DesignVote {
+  id       Int      @id @default(autoincrement())
+  site     String   @db.VarChar(50)
+  email    String   @db.VarChar(254)
+  designId Int      @map("design_id")
+  votedAt  DateTime @default(now()) @map("voted_at")
+
+  design Design @relation(fields: [designId], references: [id], onDelete: Cascade)
+
+  @@unique([email, designId])
+  @@index([site])
+  @@map("design_votes")
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  site      String   @db.VarChar(50)
+  name      String   @db.VarChar(255)
+  email     String   @db.VarChar(254)
+  phone     String   @default("") @db.VarChar(50)
+  company   String   @default("") @db.VarChar(255)
+  remark    String   @default("") @db.LongText
+  source    String   @default("") @db.VarChar(255)
+  project   String   @default("") @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([site])
+  @@map("contacts")
 }

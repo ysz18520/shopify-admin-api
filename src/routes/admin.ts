@@ -17,6 +17,7 @@ router.get('/stores', storeController.getAllStores);
 router.get('/stores/:name', storeController.getStoreByName);
 router.post('/stores', storeController.createStore);
 router.put('/stores/:name', storeController.updateStore);
+router.put('/stores/:name/rename', storeController.renameStore);
 router.delete('/stores/:name', storeController.deleteStore);
 
 // 预约管理

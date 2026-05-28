@@ -1,9 +1,7 @@
 import prisma from '../../lib/prisma';
+import bcrypt from 'bcryptjs';
 import { generateToken } from '../../middleware/auth';
 import { getSiteConfig } from '../../config/booking';
-
-// 支持的店铺列表（账号密码即为店铺名）
-const SITES = ['coollaa', 'longshade'];
 
 export async function login(username: string, password: string) {
   // 超管登录
@@ -15,13 +13,28 @@ export async function login(username: string, password: string) {
     return { token, username: 'admin', role: 'super', site: 'all' };
   }
 
-  // 店铺账号登录：账号密码均为店铺名
-  if (SITES.includes(username) && password === username) {
-    const token = generateToken(username, 'site', username);
-    return { token, username, role: 'site', site: username };
+  // 从数据库查找用户
+  const user = await prisma.user.findUnique({
+    where: { username },
+  });
+
+  if (!user) {
+    throw new Error('Invalid credentials');
   }
 
-  throw new Error('Invalid credentials');
+  // 验证密码
+  const valid = await bcrypt.compare(password, user.password);
+  if (!valid) {
+    throw new Error('Invalid credentials');
+  }
+
+  const token = generateToken(user.username, user.role as 'super' | 'site', user.site || 'all');
+  return {
+    token,
+    username: user.username,
+    role: user.role,
+    site: user.site || 'all',
+  };
 }
 
 export async function getBookings(

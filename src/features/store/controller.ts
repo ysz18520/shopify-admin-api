@@ -37,7 +37,6 @@ export async function createStore(req: Request, res: Response) {
       return;
     }
 
-    // Validate name format (alphanumeric and hyphens only)
     if (!/^[a-z0-9-]+$/.test(name)) {
       res.status(400).json({ error: 'name must be lowercase alphanumeric with hyphens only' });
       return;
@@ -57,6 +56,23 @@ export async function createStore(req: Request, res: Response) {
 
 export async function updateStore(req: Request, res: Response) {
   try {
+    const name = req.params.name as string;
+    const { isBookingEnabled, isVotingEnabled } = req.body;
+
+    const store = await storeService.updateStore(name, { isBookingEnabled, isVotingEnabled });
+    res.json(store);
+  } catch (error: any) {
+    console.error('Update store error:', error);
+    if (error.message === 'Store not found') {
+      res.status(404).json({ error: error.message });
+      return;
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+export async function renameStore(req: Request, res: Response) {
+  try {
     const oldName = req.params.name as string;
     const { name: newName } = req.body;
 
@@ -65,16 +81,15 @@ export async function updateStore(req: Request, res: Response) {
       return;
     }
 
-    // Validate name format
     if (!/^[a-z0-9-]+$/.test(newName)) {
       res.status(400).json({ error: 'name must be lowercase alphanumeric with hyphens only' });
       return;
     }
 
-    const store = await storeService.updateStore(oldName, newName);
+    const store = await storeService.renameStore(oldName, newName);
     res.json(store);
   } catch (error: any) {
-    console.error('Update store error:', error);
+    console.error('Rename store error:', error);
     if (error.message === 'Store not found') {
       res.status(404).json({ error: error.message });
       return;
