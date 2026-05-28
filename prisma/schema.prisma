@@ -89,7 +89,7 @@ model Design {
   site              String        @db.VarChar(50)
   designId          String        @map("design_id") @db.VarChar(100)
   designTitle       String        @map("design_title") @db.VarChar(255)
-  designDescription String        @default("") @map("design_description") @db.LongText
+  designDescription String        @map("design_description") @db.LongText
   designAuthor      String        @default("") @map("design_author") @db.VarChar(255)
   designImg         String        @default("") @map("design_img") @db.VarChar(500)
   votingCount       Int           @default(0) @map("voting_count")
@@ -126,7 +126,7 @@ model Contact {
   email     String   @db.VarChar(254)
   phone     String   @default("") @db.VarChar(50)
   company   String   @default("") @db.VarChar(255)
-  remark    String   @default("") @db.LongText
+  remark    String   @db.LongText
   source    String   @default("") @db.VarChar(255)
   project   String   @default("") @db.VarChar(255)
   createdAt DateTime @default(now()) @map("created_at")
