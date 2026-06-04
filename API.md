@@ -1,6 +1,6 @@
 # Coollaa 预约系统 API 文档
 
-Base URL: `http://your-server:3000/api/coollaa`
+Base URL: `https://api.sifanonline.com/api`
 
 ---
 
@@ -13,7 +13,7 @@ Base URL: `http://your-server:3000/api/coollaa`
 | 项目 | 内容 |
 |------|------|
 | 方法 | `GET` |
-| 地址 | `/booking/config` |
+| 地址 | `/coollaa/booking/config` |
 
 **响应示例**
 
@@ -48,7 +48,7 @@ Base URL: `http://your-server:3000/api/coollaa`
 | 项目 | 内容 |
 |------|------|
 | 方法 | `GET` |
-| 地址 | `/booking/slots` |
+| 地址 | `/coollaa/booking/slots` |
 
 **Query 参数**
 
@@ -126,7 +126,7 @@ GET /api/coollaa/booking/slots?date=2026-05-15&duration=30&timezone=Asia/Shangha
 | 项目 | 内容 |
 |------|------|
 | 方法 | `POST` |
-| 地址 | `/booking` |
+| 地址 | `/coollaa/booking` |
 | Content-Type | `application/json` |
 
 **Body 参数**
@@ -205,7 +205,7 @@ PUT /coollaa/booking/:id/cancel
 
 ## 5. 管理后台 API
 
-Base URL: `http://your-server:3000/api/admin`
+Base URL: `https://api.sifanonline.com/api/admin`
 
 所有接口（除登录外）需要在 Header 中携带：`Authorization: Bearer {token}`
 
@@ -235,19 +235,30 @@ Content-Type: application/json
 | `coollaa` | `coollaa` | `site` | 店铺管理员，只能看 coollaa 数据 |
 | `longshade` | `longshade` | `site` | 店铺管理员，只能看 longshade 数据 |
 
-### 5.2 预约列表
+### 5.2 店铺管理
+
+```
+GET    /admin/stores                    # 获取所有店铺
+POST   /admin/stores                    # 创建店铺 Body: { "name": "xxx" }
+GET    /admin/stores/:name              # 获取单个店铺
+PUT    /admin/stores/:name              # 更新店铺 Body: { "isBookingEnabled": true }
+PUT    /admin/stores/:name/rename       # 重命名 Body: { "name": "newname" }
+DELETE /admin/stores/:name              # 删除店铺
+```
+
+### 5.3 预约列表
 
 ```
 GET /admin/bookings?page=1&pageSize=10&status=confirmed&site=coollaa
 ```
 
-### 5.3 取消预约
+### 5.4 取消预约
 
 ```
 PUT /admin/bookings/:id/cancel
 ```
 
-### 5.4 统计数据
+### 5.5 统计数据
 
 ```
 GET /admin/stats?site=coollaa
@@ -255,7 +266,7 @@ GET /admin/stats?site=coollaa
 
 **响应**：`{ "today": 0, "week": 0, "month": 0, "pending": 0, "total": 0 }`
 
-### 5.5 可用性配置
+### 5.6 可用性配置
 
 ```
 GET /admin/availability?site=coollaa
@@ -263,11 +274,11 @@ PUT /admin/availability?site=coollaa
 Body: { "availability": [...], "breaks": [...] }
 ```
 
-### 5.6 特殊日期（节假日）
+### 5.7 特殊日期（节假日）
 
 ```
-GET /admin/holidays?site=coollaa
-POST /admin/holidays?site=coollaa       Body: { "date": "2026-01-01", "reason": "元旦" }
+GET    /admin/holidays?site=coollaa
+POST   /admin/holidays?site=coollaa       Body: { "date": "2026-01-01", "reason": "元旦" }
 DELETE /admin/holidays/:id?site=coollaa
 ```
 
@@ -275,11 +286,11 @@ DELETE /admin/holidays/:id?site=coollaa
 
 ## 前端对接流程建议
 
-1. **初始化**：调用 `GET /booking/config`，获取时区、时长选项、会议方式，渲染页面。
-2. **选日期**：用户点击日历某天，调用 `GET /booking/slots?date=...&duration=...&timezone=...`，拿到可用时段列表渲染。
+1. **初始化**：调用 `GET /coollaa/booking/config`，获取时区、时长选项、会议方式，渲染页面。
+2. **选日期**：用户点击日历某天，调用 `GET /coollaa/booking/slots?date=...&duration=...&timezone=...`，拿到可用时段列表渲染。
 3. **选时段**：用户点击某个时段，记录 `startTime`（商家时区 `HH:mm`）和 `date`。
 4. **填信息**：用户填写表单，进入确认页。
-5. **提交**：调用 `POST /booking`，传入所有信息。成功则展示预约成功页，失败（409）提示时段已被预约，返回重新选择。
+5. **提交**：调用 `POST /coollaa/booking`，传入所有信息。成功则展示预约成功页，失败（409）提示时段已被预约，返回重新选择。
 
 ## 本地开发
 
