@@ -57,9 +57,9 @@ export async function createStore(req: Request, res: Response) {
 export async function updateStore(req: Request, res: Response) {
   try {
     const name = req.params.name as string;
-    const { isBookingEnabled, isVotingEnabled } = req.body;
+    const { isBookingEnabled } = req.body;
 
-    const store = await storeService.updateStore(name, { isBookingEnabled, isVotingEnabled });
+    const store = await storeService.updateStore(name, { isBookingEnabled });
     res.json(store);
   } catch (error: any) {
     console.error('Update store error:', error);

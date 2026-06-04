@@ -4,7 +4,6 @@ import bcrypt from 'bcryptjs';
 export interface StoreData {
   name: string;
   isBookingEnabled?: boolean;
-  isVotingEnabled?: boolean;
 }
 
 export async function getAllStores() {
@@ -37,7 +36,6 @@ export async function createStore(data: StoreData) {
     data: {
       name: data.name,
       isBookingEnabled: data.isBookingEnabled ?? false,
-      isVotingEnabled: data.isVotingEnabled ?? false,
     },
   });
 
@@ -67,7 +65,6 @@ export async function updateStore(name: string, data: Partial<StoreData>) {
 
   const updateData: any = {};
   if (data.isBookingEnabled !== undefined) updateData.isBookingEnabled = data.isBookingEnabled;
-  if (data.isVotingEnabled !== undefined) updateData.isVotingEnabled = data.isVotingEnabled;
 
   return prisma.store.update({
     where: { name },
@@ -102,9 +99,6 @@ export async function renameStore(oldName: string, newName: string) {
     prisma.availabilityConfig.updateMany({ where: { site: oldName }, data: { site: newName } }),
     prisma.breakTime.deleteMany({ where: { site: oldName } }),
     prisma.holiday.updateMany({ where: { site: oldName }, data: { site: newName } }),
-    prisma.design.updateMany({ where: { site: oldName }, data: { site: newName } }),
-    prisma.designVote.updateMany({ where: { site: oldName }, data: { site: newName } }),
-    prisma.contact.updateMany({ where: { site: oldName }, data: { site: newName } }),
     prisma.user.updateMany({ where: { site: oldName }, data: { site: newName, username: newName } }),
     prisma.store.update({ where: { name: oldName }, data: { name: newName } }),
   ]);
@@ -122,9 +116,6 @@ export async function deleteStore(name: string) {
   }
 
   // 级联删除相关数据
-  await prisma.designVote.deleteMany({ where: { site: name } });
-  await prisma.design.deleteMany({ where: { site: name } });
-  await prisma.contact.deleteMany({ where: { site: name } });
   await prisma.availabilityConfig.deleteMany({ where: { site: name } });
   await prisma.breakTime.deleteMany({ where: { site: name } });
   await prisma.holiday.deleteMany({ where: { site: name } });
