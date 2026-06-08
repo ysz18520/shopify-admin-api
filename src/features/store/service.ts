@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs';
 export interface StoreData {
   name: string;
   isBookingEnabled?: boolean;
+  maxFileSize?: number;
+  allowedFileTypes?: string;
 }
 
 export async function getAllStores() {
@@ -65,6 +67,8 @@ export async function updateStore(name: string, data: Partial<StoreData>) {
 
   const updateData: any = {};
   if (data.isBookingEnabled !== undefined) updateData.isBookingEnabled = data.isBookingEnabled;
+  if (data.maxFileSize !== undefined) updateData.maxFileSize = data.maxFileSize;
+  if (data.allowedFileTypes !== undefined) updateData.allowedFileTypes = data.allowedFileTypes;
 
   return prisma.store.update({
     where: { name },
@@ -99,6 +103,7 @@ export async function renameStore(oldName: string, newName: string) {
     prisma.availabilityConfig.updateMany({ where: { site: oldName }, data: { site: newName } }),
     prisma.breakTime.deleteMany({ where: { site: oldName } }),
     prisma.holiday.updateMany({ where: { site: oldName }, data: { site: newName } }),
+    prisma.uploadedFile.updateMany({ where: { site: oldName }, data: { site: newName } }),
     prisma.user.updateMany({ where: { site: oldName }, data: { site: newName, username: newName } }),
     prisma.store.update({ where: { name: oldName }, data: { name: newName } }),
   ]);
@@ -116,6 +121,7 @@ export async function deleteStore(name: string) {
   }
 
   // 级联删除相关数据
+  await prisma.uploadedFile.deleteMany({ where: { site: name } });
   await prisma.availabilityConfig.deleteMany({ where: { site: name } });
   await prisma.breakTime.deleteMany({ where: { site: name } });
   await prisma.holiday.deleteMany({ where: { site: name } });

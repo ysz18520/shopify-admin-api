@@ -63,12 +63,30 @@ model Store {
   id               String   @id @default(cuid())
   name             String   @unique @db.VarChar(50)  // 店铺名称/标识
   isBookingEnabled Boolean  @default(false) @map("is_booking_enabled")  // 预约功能开关
+  maxFileSize      Int      @default(52428800) @map("max_file_size")    // 最大文件大小（字节），默认50MB
+  allowedFileTypes String   @default("*") @map("allowed_file_types")   // 允许的文件类型，* 表示全部，或逗号分隔如 .jpg,.png,.pdf
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
   users User[]
 
   @@map("stores")
+}
+
+model UploadedFile {
+  id         String   @id @default(cuid())
+  site       String   @db.VarChar(50)
+  fileName   String   @map("file_name") @db.VarChar(500)
+  fileKey    String   @map("file_key") @db.VarChar(500)
+  fileUrl    String   @map("file_url") @db.VarChar(1000)
+  fileSize   Int      @map("file_size")
+  mimeType   String   @map("mime_type") @db.VarChar(200)
+  uploadedBy String?  @map("uploaded_by") @db.VarChar(200)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([site])
+  @@index([site, createdAt])
+  @@map("uploaded_files")
 }
 
 model User {

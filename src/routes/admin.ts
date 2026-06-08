@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authMiddleware, siteFilterMiddleware } from '../middleware/auth';
 import * as adminController from '../features/admin/controller';
 import * as storeController from '../features/store/controller';
+import * as uploadController from '../features/upload/controller';
 
 const router = Router();
 
@@ -19,6 +20,10 @@ router.post('/stores', storeController.createStore);
 router.put('/stores/:name', storeController.updateStore);
 router.put('/stores/:name/rename', storeController.renameStore);
 router.delete('/stores/:name', storeController.deleteStore);
+
+// 文件管理
+router.get('/files', uploadController.getFileList);
+router.delete('/files/:id', uploadController.deleteFile);
 
 // 预约管理
 router.get('/bookings', adminController.getBookings);
